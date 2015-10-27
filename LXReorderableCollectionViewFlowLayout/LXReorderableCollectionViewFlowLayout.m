@@ -212,7 +212,7 @@ static NSString * const kLXCollectionViewKeyPath = @"collectionView";
 
 - (void)setupScrollTimerInDirection:(LXScrollingDirection)direction {
     if (!self.displayLink.paused) {
-        LXScrollingDirection oldDirection = [self.displayLink.LX_userInfo[kLXScrollingDirectionKey] integerValue];
+        LXScrollingDirection oldDirection = (LXScrollingDirection)[self.displayLink.LX_userInfo[kLXScrollingDirectionKey] integerValue];
 
         if (direction == oldDirection) {
             return;
@@ -411,7 +411,18 @@ static NSString * const kLXCollectionViewKeyPath = @"collectionView";
     switch (gestureRecognizer.state) {
         case UIGestureRecognizerStateBegan:
         case UIGestureRecognizerStateChanged: {
-            self.panTranslationInCollectionView = [gestureRecognizer translationInView:self.collectionView];
+			CGPoint pt = [gestureRecognizer translationInView:self.collectionView];
+			if (self.fixedScrollDirection) {
+				switch (self.scrollDirection) {
+					case UICollectionViewScrollDirectionVertical:
+						pt.x = 0;
+						break;
+					case UICollectionViewScrollDirectionHorizontal:
+						pt.y = 0;
+						break;
+				}
+			}
+            self.panTranslationInCollectionView = pt;
             CGPoint viewCenter = self.currentView.center = LXS_CGPointAdd(self.currentViewCenter, self.panTranslationInCollectionView);
             
             [self invalidateLayoutIfNecessary];
@@ -488,7 +499,15 @@ static NSString * const kLXCollectionViewKeyPath = @"collectionView";
 #pragma mark - UIGestureRecognizerDelegate methods
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer {
-    if ([self.panGestureRecognizer isEqual:gestureRecognizer]) {
+
+	if ([self.longPressGestureRecognizer isEqual:gestureRecognizer]) {
+		if ([self.delegate respondsToSelector:@selector(collectionView:layout:shouldBeginLongPressAtIndexPath:)]) {
+			if (![self.delegate collectionView:self.collectionView layout:self shouldBeginLongPressAtIndexPath:self.selectedItemIndexPath]) {
+				return NO;
+			}
+		}
+		
+	} else if ([self.panGestureRecognizer isEqual:gestureRecognizer]) {
         return (self.selectedItemIndexPath != nil);
     }
     return YES;
