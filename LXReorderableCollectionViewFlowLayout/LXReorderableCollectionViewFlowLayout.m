@@ -465,6 +465,11 @@ static NSString * const kLXCollectionViewKeyPath = @"collectionView";
 #pragma mark - UICollectionViewLayout overridden methods
 
 - (NSArray *)layoutAttributesForElementsInRect:(CGRect)rect {
+
+	if (self.collectionView.dataSource == nil) {
+		return nil;
+	}
+	
     NSArray *layoutAttributesForElementsInRect = [super layoutAttributesForElementsInRect:rect];
     
     for (UICollectionViewLayoutAttributes *layoutAttributes in layoutAttributesForElementsInRect) {
