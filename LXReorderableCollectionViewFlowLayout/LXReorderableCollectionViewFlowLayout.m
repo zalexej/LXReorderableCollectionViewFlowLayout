@@ -50,7 +50,8 @@ static NSString * const kLXCollectionViewKeyPath = @"collectionView";
 @implementation UICollectionViewCell (LXReorderableCollectionViewFlowLayout)
 
 - (UIView *)LX_snapshotView {
-    if ([self respondsToSelector:@selector(snapshotViewAfterScreenUpdates:)]) {
+	if (([[[UIDevice currentDevice] systemVersion] compare:@"9.0" options:NSNumericSearch] != NSOrderedAscending) &&
+		[self respondsToSelector:@selector(snapshotViewAfterScreenUpdates:)]) {
         return [self snapshotViewAfterScreenUpdates:YES];
     } else {
         UIGraphicsBeginImageContextWithOptions(self.bounds.size, self.isOpaque, 0.0f);
